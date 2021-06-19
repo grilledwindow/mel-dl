@@ -5,7 +5,7 @@ pub struct Login {
 
 pub fn login() -> Login {
     Login {
-        email: "",
-        password: "",
+        email: "", // to be filled in
+        password: "", // to be filled in
     }
 }
