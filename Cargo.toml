@@ -1,5 +1,5 @@
 [package]
-name = "howemork"
+name = "mel-dl"
 version = "0.1.0"
 authors = ["Xavier Ang <xaveang@gmail.com>"]
 edition = "2018"
