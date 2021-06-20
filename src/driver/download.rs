@@ -2,7 +2,6 @@ use async_trait::async_trait;
 use std::thread::sleep;
 use std::time::Duration;
 use thirtyfour::{prelude::*, ScriptArgs};
-use thirtyfour_query::ElementWaitable;
 
 use super::utils::*;
 use crate::login::login;
@@ -87,7 +86,7 @@ impl Download for WebDriver {
         sleep(Duration::from_millis(500));
         self.query_wait_click(By::Css(&c), &[]).await?;
 
-        // self.download_i_files().await?;
+        self.download_i_files().await?;
 
         // open new tab
         self.execute_script(r#"window.open("about:blank", target="_blank");"#)

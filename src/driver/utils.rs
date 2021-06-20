@@ -3,7 +3,6 @@ use futures::future::join_all;
 use std::thread::sleep;
 use std::time::Duration;
 use thirtyfour::prelude::*;
-use thirtyfour_query::ElementQueryable;
 
 #[async_trait]
 pub trait Utils {
