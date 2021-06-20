@@ -283,18 +283,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "howemork"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "futures",
- "serde_json",
- "thirtyfour",
- "thirtyfour_query",
- "tokio",
-]
-
-[[package]]
 name = "http"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -433,6 +421,18 @@ name = "matches"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ffc5c5338469d4d3ea17d269fa8ea3512ad247247c30bd2df69e68309ed0a08"
+
+[[package]]
+name = "mel-dl"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "serde_json",
+ "thirtyfour 0.25.1",
+ "thirtyfour_query",
+ "tokio",
+]
 
 [[package]]
 name = "memchr"
@@ -919,6 +919,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "thirtyfour"
+version = "0.25.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e4429572f5e3ca656ffcd80765c09603e060c7d336ab359e58a0665e4a270698"
+dependencies = [
+ "async-trait",
+ "base64",
+ "chrono",
+ "displaydoc",
+ "futures",
+ "log",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_repr",
+ "stringmatch",
+ "thiserror",
+ "tokio",
+ "urlparse",
+]
+
+[[package]]
 name = "thirtyfour_query"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -929,7 +951,7 @@ dependencies = [
  "serde",
  "serde_json",
  "stringmatch",
- "thirtyfour",
+ "thirtyfour 0.24.1",
  "tokio",
 ]
 
@@ -980,9 +1002,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.6.0"
+version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd3076b5c8cc18138b8f8814895c11eb4de37114a5d127bafdc5e55798ceef37"
+checksum = "5fb2ed024293bb19f7a5dc54fe83bf86532a44c12a2bb8ba40d64a4509395ca2"
 dependencies = [
  "autocfg",
  "bytes",
@@ -992,6 +1014,7 @@ dependencies = [
  "num_cpus",
  "pin-project-lite",
  "tokio-macros",
+ "winapi",
 ]
 
 [[package]]
