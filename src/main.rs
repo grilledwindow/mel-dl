@@ -2,15 +2,17 @@ use std::path::Path;
 use std::time::Duration;
 use thirtyfour::prelude::*;
 use thirtyfour_query::ElementPoller;
-// , ElementQueryable, ElementWaitable};
 use serde_json::Value;
 use tokio;
 
 mod mel;
 use mel::*;
 
-mod sss;
-use sss::*;
+mod driver {
+    pub mod download;
+    mod utils;
+}
+use driver::download::*;
 
 mod login;
 
@@ -21,7 +23,7 @@ async fn main() -> WebDriverResult<()> {
         r#"{
         "download.default_directory": "C:\\Users\\xa\\Downloads",
         "download.prompt_for_download": false
-    }"#
+    }"#,
     )?;
 
     caps.add_chrome_option("prefs", v)?;
@@ -33,6 +35,7 @@ async fn main() -> WebDriverResult<()> {
     const URL: &str = "https://mel.np.edu.sg/auth-saml/saml/login?apId=_155_1&redirectUrl=https://mel.np.edu.sg/ultra";
 
     let mut driver = WebDriver::new("http://localhost:4444", &mut caps).await?;
+
     driver
         .set_implicit_wait_timeout(Duration::new(0, 0))
         .await?;
@@ -45,18 +48,9 @@ async fn main() -> WebDriverResult<()> {
 
     driver.sign_in().await?;
 
-    let applied_analytics = Module::new(
-        Modules::AppliedAnalytics,
-        1,
-        "694428",
-        1,
-        &[],
-        Path::new("C:\\Users\\xa\\Desktop\\AA"),
-    );
+    let applied_analytics = Module::new(1, "694428", 1, 2, Path::new("C:\\Users\\xa\\Desktop\\AA"));
 
-    let web_app_dev = Module::new(Modules::WebAppDev, 6, "691829", 6, &[], Path::new("C:"));
+    driver.download_files(applied_analytics, 2).await?;
 
-    driver.download_files(web_app_dev, 1).await?;
-    loop {}
     Ok(())
 }
