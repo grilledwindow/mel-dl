@@ -19,14 +19,15 @@ mod login;
 #[tokio::main]
 async fn main() -> WebDriverResult<()> {
     let mut caps = DesiredCapabilities::chrome();
+    
     let v: Value = serde_json::from_str(
         r#"{
         "download.default_directory": "C:\\Users\\xa\\Downloads",
         "download.prompt_for_download": false
     }"#,
     )?;
-
     caps.add_chrome_option("prefs", v)?;
+
     caps.add_chrome_option(
         "binary",
         "C:\\Program Files (x86)\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
