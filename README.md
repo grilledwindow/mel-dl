@@ -6,10 +6,10 @@ You need to have [Rust](https://www.rust-lang.org/tools/install), [Chromedriver]
 
 ## Setup
 Run the chromedriver:\
-```chromedriver --port=4444```
+`chromedriver --port=4444`
 
 Build and run (in a separate tab):\
-```cargo run```
+`cargo run`
 
 ## Program
 struct Module:
@@ -23,12 +23,12 @@ pub struct Module {
 }
 ```
 
-Create a Module:\
+Create a Module:
 ```rust
 let applied_analytics = Module::new(1, "694428", 1, 2, Path::new("C:\\Users\\xa\\Desktop\\AA"));
 ```
 
-Download files:\
+Download files:
 ```rust
 driver.download_files(&applied_analytics, 2).await?;
 ```
