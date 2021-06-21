@@ -10,7 +10,7 @@ use crate::mel::Module;
 #[async_trait]
 pub trait Download {
     async fn sign_in(&self) -> WebDriverResult<()>;
-    async fn download_files(&self, module: Module, week: u8) -> WebDriverResult<()>;
+    async fn download_files(&self, module: &Module, week: u8) -> WebDriverResult<()>;
 }
 #[async_trait]
 impl Download for WebDriver {
@@ -51,7 +51,7 @@ impl Download for WebDriver {
         Ok(())
     }
 
-    async fn download_files(&self, module: Module, week: u8) -> WebDriverResult<()> {
+    async fn download_files(&self, module: &Module, week: u8) -> WebDriverResult<()> {
         // module.course_nth + 1: Don't know why, nth-child gets child 1 using index 2
         let module_css = format!(".term-_83_1:nth-child({})", module.course_nth + 1);
         let module_tab = self.query_wait(By::Css(&module_css), &[40, 1000]).await?;

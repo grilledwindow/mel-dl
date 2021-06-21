@@ -50,7 +50,7 @@ async fn main() -> WebDriverResult<()> {
 
     let applied_analytics = Module::new(1, "694428", 1, 2, Path::new("C:\\Users\\xa\\Desktop\\AA"));
 
-    driver.download_files(applied_analytics, 2).await?;
+    driver.download_files(&applied_analytics, 2).await?;
 
     Ok(())
 }
