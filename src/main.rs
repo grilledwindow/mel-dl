@@ -1,8 +1,8 @@
+use serde_json::Value;
 use std::path::Path;
 use std::time::Duration;
 use thirtyfour::prelude::*;
 use thirtyfour_query::ElementPoller;
-use serde_json::Value;
 use tokio;
 
 mod mel;
@@ -14,12 +14,14 @@ mod driver {
 }
 use driver::download::*;
 
+mod config;
+use config::Config;
+
 mod login;
 
 #[tokio::main]
 async fn main() -> WebDriverResult<()> {
     let mut caps = DesiredCapabilities::chrome();
-    
     let v: Value = serde_json::from_str(
         r#"{
         "download.default_directory": "C:\\Users\\xa\\Downloads",
@@ -49,9 +51,10 @@ async fn main() -> WebDriverResult<()> {
 
     driver.sign_in().await?;
 
-    let applied_analytics = Module::new(1, "694428", 1, 2, Path::new("C:\\Users\\xa\\Desktop\\AA"));
-
-    driver.download_files(&applied_analytics, 2).await?;
+    let applied_analytics = Module::new(1, 1, Path::new("C:\\Users\\xa\\Desktop\\AA"), true);
+    let config = Config::new().set_folder_no(None);
+    
+    driver.download_files(&applied_analytics, &config).await?;
 
     Ok(())
 }
