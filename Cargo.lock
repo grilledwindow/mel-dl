@@ -429,6 +429,7 @@ dependencies = [
  "async-trait",
  "futures",
  "serde_json",
+ "stringmatch",
  "thirtyfour 0.25.1",
  "thirtyfour_query",
  "tokio",
