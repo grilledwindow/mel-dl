@@ -1,10 +1,12 @@
 use std::default::Default;
 
+#[allow(dead_code)]
 pub struct Config {
     prompt: bool,
     folder_no: u8,
 }
 
+#[allow(dead_code)]
 impl Config {
     pub fn new() -> Self {
         Config::default()
@@ -42,19 +44,3 @@ impl Default for Config {
         }
     }
 }
-
-// pub struct ConfigBuilder {
-//     config: Config,
-// }
-
-// impl ConfigBuilder {
-//     pub fn new() -> Self {
-//         Self {
-//             config: Config::default(),
-//         }
-//     }
-
-//     pub fn enable_prompt(&self) -> Self {
-//         self.
-//     }
-// }
