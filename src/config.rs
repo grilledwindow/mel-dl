@@ -2,7 +2,7 @@ use std::default::Default;
 
 pub struct Config {
     prompt: bool,
-    folder_no: Option<u8>,
+    folder_no: u8,
 }
 
 impl Config {
@@ -20,14 +20,14 @@ impl Config {
     }
 
     pub fn current(&self) -> bool {
-        self.folder_no.is_none()
+        self.folder_no == 0
     }
 
-    pub fn get_folder_no(&self) -> Option<u8> {
+    pub fn get_folder_no(&self) -> u8 {
         self.folder_no
     }
 
-    pub(crate) fn set_folder_no(mut self, folder_no: Option<u8>) -> Self {
+    pub(crate) fn set_folder_no(mut self, folder_no: u8) -> Self {
         self.folder_no = folder_no;
         self
     }
@@ -38,7 +38,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             prompt: false,
-            folder_no: None,
+            folder_no: 0,
         }
     }
 }
