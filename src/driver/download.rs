@@ -1,17 +1,22 @@
 use async_trait::async_trait;
+use serde_json::Value;
 use std::thread::sleep;
 use std::time::Duration;
 use thirtyfour::{prelude::*, ScriptArgs};
+use thirtyfour_query::ElementPoller;
 
 use super::utils::*;
+use crate::config::Config;
 use crate::login::login;
 use crate::mel::Module;
+use crate::directory;
 
 #[async_trait]
 pub trait Download {
     async fn sign_in(&self) -> WebDriverResult<()>;
-    async fn download_files(&self, module: &Module, week: u8) -> WebDriverResult<()>;
+    async fn download_files(&mut self, module: &Module, config: &Config) -> WebDriverResult<()>;
 }
+
 #[async_trait]
 impl Download for WebDriver {
     async fn sign_in(&self) -> WebDriverResult<()> {
@@ -51,7 +56,7 @@ impl Download for WebDriver {
         Ok(())
     }
 
-    async fn download_files(&self, module: &Module, week: u8) -> WebDriverResult<()> {
+    async fn download_files(&mut self, module: &Module, config: &Config) -> WebDriverResult<()> {
         // module.course_nth + 1: Don't know why, nth-child gets child 1 using index 2
         let module_css = format!(".term-_83_1:nth-child({})", module.course_nth + 1);
         let module_tab = self.query_wait(By::Css(&module_css), &[40, 1000]).await?;
@@ -74,19 +79,35 @@ impl Download for WebDriver {
         self.switch_to().frame_number(0).await?;
 
         self.query_wait_click(By::Id("menuPuller"), &[]).await?;
+        self.open_learning_materials().await?;
+        let all_weeks_links = self.get_folder_links(true).await?;
+        let n_weeks = all_weeks_links.iter().count() as u8;
+        let mut folder_no = config.get_folder_no();
 
-        self.query_wait_click(By::Id(&module.learning_materials_tab_id), &[])
-            .await?;
+        if folder_no > n_weeks {
+            folder_no = n_weeks
+        }
+        if config.current() {
+            folder_no = if module.folder_order_ascending {
+                n_weeks
+            } else {
+                1
+            };
+        }
 
-        let c = format!(
-            "#content_listContainer li:nth-child({}) a",
-            module.learning_materials_nth + week - 1
-        );
+        folder_no -= 1;
 
         sleep(Duration::from_millis(500));
-        self.query_wait_click(By::Css(&c), &[]).await?;
+        self.get(&all_weeks_links[folder_no as usize]).await?;
 
         self.download_i_files().await?;
+
+        let folder_links = self.get_folder_links(false).await?;
+        if folder_links.iter().count() == 0 {
+            directory::move_files(module.download_path)?;
+            self.get("https://mel.np.edu.sg/ultra/course").await?;
+            return Ok(());
+        }
 
         // open new tab
         self.execute_script(r#"window.open("about:blank", target="_blank");"#)
@@ -95,15 +116,12 @@ impl Download for WebDriver {
         let handles = self.window_handles().await?;
         self.switch_to().window(&handles[1]).await?;
 
-        for link in self.get_folder_links().await? {
-            // switch tabs
-            println!("{}", link);
+        for link in folder_links {
             self.download_i_files().await?;
             self.get(link).await?;
-            sleep(Duration::from_secs(3));
+            sleep(Duration::from_secs(1));
         }
 
-        println!("Closing");
         // close new tab
         self.close().await?;
 
@@ -111,7 +129,7 @@ impl Download for WebDriver {
         self.switch_to().window(&handles[0]).await?;
         sleep(Duration::from_millis(100));
 
-        // go back to module, all weeks
+        // go back to learning materials
         self.back().await?;
 
         // switch to main frame
@@ -120,9 +138,10 @@ impl Download for WebDriver {
 
         // Go back to module homepage
         self.back().await?;
-        
         // Go back to all modules
         self.back().await?;
+        
+        directory::move_files(module.download_path)?;
 
         Ok(())
     }
