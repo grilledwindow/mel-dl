@@ -1,9 +1,7 @@
 use async_trait::async_trait;
-use serde_json::Value;
 use std::thread::sleep;
 use std::time::Duration;
 use thirtyfour::{prelude::*, ScriptArgs};
-use thirtyfour_query::ElementPoller;
 
 use super::utils::*;
 use crate::config::Config;
@@ -140,7 +138,7 @@ impl Download for WebDriver {
         self.back().await?;
         // Go back to all modules
         self.back().await?;
-        
+
         directory::move_files(module.download_path)?;
 
         Ok(())

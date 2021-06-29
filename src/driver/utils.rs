@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use futures::future::join_all;
-use std::thread::sleep;
 use std::time::Duration;
 use stringmatch::StringMatch;
 use thirtyfour::prelude::*;
