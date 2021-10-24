@@ -8,6 +8,8 @@ use std::thread::sleep;
 use std::time::Duration;
 use thirtyfour::{prelude::*, ScriptArgs};
 
+use super::utils::FolderType;
+
 #[async_trait]
 pub trait Download {
     async fn sign_in(&self) -> WebDriverResult<()>;
@@ -107,11 +109,11 @@ impl Download for WebDriver {
 
         self.query_wait_click(By::Id("menuPuller"), &[]).await?;
         self.open_learning_materials().await?;
-        let all_weeks_links = self.get_folder_links(true).await?;
+        let all_weeks_links = self.get_links(&FolderType::FolderWeek).await?;
         let n_weeks = all_weeks_links.iter().count() as u8;
 
         for f in &all_weeks_links {
-            println!("{:?}", f);
+            println!("folder: {:?}", f.link);
         }
         
         folder += module.week_start;
@@ -119,12 +121,6 @@ impl Download for WebDriver {
             println!("Folder {0} is greater than the number of folders found: {1}.\nDownloading folder {1}", folder, n_weeks);
             folder = n_weeks;
         }
-        // folder = if module.folder_order_ascending {
-        //     n_weeks
-        // } else {
-        //     1
-        // };
-
 
         folder -= 1;
         println!("{}", &all_weeks_links[folder as usize].link);
@@ -135,7 +131,17 @@ impl Download for WebDriver {
         ))
         .await?;
         println!("Week: {:?}", &all_weeks_links[folder as usize].week_no);
-        self.download_i_files().await?;
+
+        let file_links = self.get_links(&FolderType::File).await?;
+        for f in &file_links {
+            println!("file: {:?}", f.link);
+        }
+
+        let item_links = self.get_links(&FolderType::Item).await?;
+        for f in &item_links {
+            println!("item: {:?}", f.link);
+        }
+        // self._download_files().await?;
 /*
         let folder_links = self.get_folder_links(false).await?;
         if folder_links.iter().count() == 0 {
@@ -181,11 +187,11 @@ impl Download for WebDriver {
         // Go back to all modules
         self.back().await?; */
 
-        directory::move_files(
-            settings,
-            module.name,
-            &all_weeks_links[folder as usize].week_no,
-        )?;
+        // directory::move_files(
+        //     settings,
+        //     module.name,
+        //     &all_weeks_links[folder as usize].week_no,
+        // )?;
 
         Ok(())
     }
