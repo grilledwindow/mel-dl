@@ -1,46 +1,78 @@
-use std::default::Default;
+use serde::Deserialize;
+use std::path::Path;
 
-#[allow(dead_code)]
-pub struct Config {
-    prompt: bool,
-    folder_no: u8,
-}
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[serde(bound(deserialize = "'de: 'a"))]
+pub struct Module<'a> {
+    // module name
+    pub name: &'a str,
 
-#[allow(dead_code)]
-impl Config {
-    pub fn new() -> Self {
-        Config::default()
-    }
+    // the order of the course on the website
+    pub course_nth: u8,
 
-    pub fn get_prompt(&self) -> bool {
-        self.prompt
-    }
+    // first week appears on top, defaults to true
+    #[serde(default = "default_true")]
+    pub folder_order_ascending: bool,
 
-    pub(crate) fn set_prompt(mut self, enabled: bool) -> Self {
-        self.prompt = enabled;
-        self
-    }
+    // img used, defaults to folder
+    #[serde(default = "default_img_alt")]
+    pub img_alt: &'a str,
 
-    pub fn current(&self) -> bool {
-        self.folder_no == 0
-    }
+    // when the folders start, defaults to 1
+    #[serde(default = "default_week_start")]
+    pub week_start: u8,
 
-    pub fn get_folder_no(&self) -> u8 {
-        self.folder_no
-    }
-
-    pub(crate) fn set_folder_no(mut self, folder_no: u8) -> Self {
-        self.folder_no = folder_no;
-        self
-    }
+    // name of materials tab, defaults to "Learning Materials"
+    #[serde(default = "default_materials")]
+    pub materials: &'a str,
 
 }
 
-impl Default for Config {
-    fn default() -> Self {
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[serde(bound(deserialize = "'de: 'a"))]
+pub struct SettingsRead<'a> {
+    #[serde(default = "default_true")]
+    pub order_ascending: bool,
+    pub path: String,
+    pub bin: String,
+    pub temp_download_folder: &'a str,
+}
+
+
+#[derive(Debug)]
+pub struct Settings<'a> {
+    pub order_ascending: bool,
+    pub path: &'a Path,
+    pub bin: &'a Path,
+    pub temp_download_folder: &'a Path,
+}
+
+impl<'a> Settings<'a> {
+    pub fn from(sr: &'a SettingsRead) -> Self {
         Self {
-            prompt: false,
-            folder_no: 0,
+            order_ascending: sr.order_ascending,
+            path: &Path::new(&sr.path),
+            bin: &Path::new(&sr.bin),
+            temp_download_folder: &Path::new(sr.temp_download_folder),
         }
     }
+}
+
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_img_alt<'a>() -> &'a str {
+    "folder"
+}
+
+fn default_week_start() -> u8 {
+    0
+}
+
+fn default_materials<'a>() -> &'a str {
+    "Learning Materials"
 }

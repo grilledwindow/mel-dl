@@ -1,8 +1,15 @@
 use async_trait::async_trait;
 use futures::future::join_all;
+use regex::Regex;
 use std::time::Duration;
 use stringmatch::StringMatch;
 use thirtyfour::prelude::*;
+
+#[derive(Debug)]
+pub struct Folder {
+    pub week_no: String,
+    pub link: String,
+}
 
 #[async_trait]
 pub trait Utils {
@@ -15,7 +22,7 @@ pub trait Utils {
     async fn alt_click(&self, element: &WebElement) -> WebDriverResult<()>;
     async fn open_learning_materials(&self) -> WebDriverResult<()>;
     async fn download_i_files(&self) -> WebDriverResult<()>;
-    async fn get_folder_links(&self, is_week: bool) -> WebDriverResult<Vec<String>>;
+    async fn get_folder_links(&self, is_week: bool) -> WebDriverResult<Vec<Folder>>;
 }
 
 #[async_trait]
@@ -86,7 +93,7 @@ impl Utils for WebDriver {
         Ok(())
     }
 
-    async fn get_folder_links(&self, is_week: bool) -> WebDriverResult<Vec<String>> {
+    async fn get_folder_links(&self, is_week: bool) -> WebDriverResult<Vec<Folder>> {
         let text = StringMatch::new(if is_week { "week" } else { "" })
             .case_insensitive()
             .partial();
@@ -100,11 +107,39 @@ impl Utils for WebDriver {
             .all()
             .await?;
 
-        let folder_links = join_all(
-            folder_links
-                .into_iter()
-                .map(|a| async move { a.get_attribute("href").await.ok().unwrap().unwrap() }),
-        )
+        let folder_links = join_all(folder_links.into_iter().map(|a| async move {
+            let link = a.get_attribute("href").await.ok().unwrap().unwrap();
+
+            if !is_week {
+                return Folder {
+                    week_no: String::new(),
+                    link,
+                };
+            }
+
+            let re = Regex::new(r"[Ww]eek\s*\d+").unwrap();
+            let text = a
+                .find_element(By::Tag("span"))
+                .await
+                .ok()
+                .unwrap()
+                .text()
+                .await
+                .ok()
+                .unwrap();
+            let week = re.find(&text).unwrap();
+
+            let re = Regex::new(r"\d+").unwrap();
+            let text = &text[..week.end()];
+            let week = re.find(text).unwrap();
+
+            let text = &text[week.start()..week.end()];
+
+            Folder {
+                week_no: String::from(text),
+                link,
+            }
+        }))
         .await;
 
         Ok(folder_links)
