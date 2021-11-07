@@ -74,8 +74,15 @@ impl Download for WebDriver {
             .await?;
 
         // Close popup
-        self.query_wait_click(By::Css(".ms-Dialog-main .button"), &[])
-            .await?;
+        if let Ok(popup_close) = self
+            .query(By::Css(".ms-Dialog-main .button"))
+            .nowait()
+            .ignore_errors(true)
+            .first()
+            .await
+        {
+            self.alt_click(&popup_close).await?;
+        }
 
         Ok(())
     }
@@ -115,7 +122,7 @@ impl Download for WebDriver {
         for f in &all_weeks_links {
             println!("folder: {:?}", f.link);
         }
-        
+
         folder += module.week_start;
         if folder > n_weeks {
             println!("Folder {0} is greater than the number of folders found: {1}.\nDownloading folder {1}", folder, n_weeks);
@@ -132,17 +139,18 @@ impl Download for WebDriver {
         .await?;
         println!("Week: {:?}", &all_weeks_links[folder as usize].week_no);
 
-        let file_links = self.get_links(&FolderType::File).await?;
-        for f in &file_links {
-            println!("file: {:?}", f.link);
-        }
+        // let file_links = self.get_links(&FolderType::File).await?;
+        // for f in &file_links {
+        //     println!("file: {:?}", f.link);
+        // }
 
-        let item_links = self.get_links(&FolderType::Item).await?;
-        for f in &item_links {
-            println!("item: {:?}", f.link);
-        }
-        // self._download_files().await?;
-/*
+        // let item_links = self.get_links(&FolderType::Item).await?;
+        // for f in &item_links {
+        //     println!("item: {:?}", f.link);
+        // }
+        self._download_files(FolderType::File).await?;
+        self._download_files(FolderType::Item).await?;
+        /*
         let folder_links = self.get_folder_links(false).await?;
         if folder_links.iter().count() == 0 {
             directory::move_files(
@@ -187,11 +195,11 @@ impl Download for WebDriver {
         // Go back to all modules
         self.back().await?; */
 
-        // directory::move_files(
-        //     settings,
-        //     module.name,
-        //     &all_weeks_links[folder as usize].week_no,
-        // )?;
+        directory::move_files(
+            settings,
+            module.name,
+            &all_weeks_links[folder as usize].week_no,
+        )?;
 
         Ok(())
     }

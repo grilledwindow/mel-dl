@@ -25,6 +25,7 @@ async fn main() -> WebDriverResult<()> {
     let settings_read: SettingsRead =
         serde_json::from_str(&settings_data).expect("Error deserializing settings.json");
     let settings = Settings::from(&settings_read);
+    let download_path = Path::new(settings.path).join(settings.temp_download_folder);
 
     let modules_data = read_to_string("modules.json").expect("Error reading modules.json");
     let modules_vec: Vec<Module> =
@@ -36,7 +37,6 @@ async fn main() -> WebDriverResult<()> {
     }
 
     const URL: &str = "https://mel.np.edu.sg/auth-saml/saml/login?apId=_155_1&redirectUrl=https://mel.np.edu.sg/ultra";
-    let download_path = Path::new("C:\\Users\\xa\\Desktop\\.mel-dl");
 
     let mut caps = DesiredCapabilities::chrome();
 
@@ -68,7 +68,7 @@ async fn main() -> WebDriverResult<()> {
                 .short("f")
                 .long("folder-no")
                 .takes_value(true)
-                .help("Which folder to download"),
+                .help("Folder to download"),
         )
         .get_matches();
 

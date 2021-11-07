@@ -26,15 +26,15 @@ pub enum FolderType {
     File,
 }
 
-// impl ImgAlt {
-//     fn to_string(&self) -> String {
-//         match self {
-//             ImgAlt::Folder => String::from("folder"),
-//             ImgAlt::Item => String::from("item"),
-//             ImgAlt::File => String::from("file"),            
-//         }
-//     }
-// }
+impl FolderType {
+    fn css(&self) -> &str {
+        match self {
+            FolderType::Item => "#content_listContainer img[alt='Item'] + div + div div.detailsValue a:nth-child(2)",
+            FolderType::File => "#content_listContainer img[alt='File'] + div div a:nth-child(2)",
+            _ => "#content_listContainer img[alt='Content Folder'] + div a",       
+        }
+    }
+}
 
 // use ImgAlt;
 
@@ -48,7 +48,7 @@ pub trait Utils {
     async fn query_wait_click<'a>(&'a self, elem: By<'a>, wait: &[u64]) -> WebDriverResult<()>;
     async fn alt_click(&self, element: &WebElement) -> WebDriverResult<()>;
     async fn open_learning_materials(&self) -> WebDriverResult<()>;
-    async fn _download_files(&self, links: Vec<Folder>) -> WebDriverResult<()>;
+    async fn _download_files(&self, folder_type: FolderType) -> WebDriverResult<()>;
     async fn get_links(&self, folder_type: &FolderType) -> WebDriverResult<Vec<Folder>>;
 }
 
@@ -106,11 +106,15 @@ impl Utils for WebDriver {
         Ok(())
     }
 
-    async fn _download_files(&self, links: Vec<Folder>) -> WebDriverResult<()> {
-        // for link in links {
-        //     println!("- Downloading: {}", link.link);
-        //     self.alt_click(&link.link).await?;
-        // }
+    async fn _download_files(&self, folder_type: FolderType) -> WebDriverResult<()> {
+        let file_links = self
+            .query(By::Css(folder_type.css()))
+            .all()
+            .await?;
+        for link in file_links {
+            println!("- Downloading: {}", link);
+            self.alt_click(&link).await?;
+        }
         Ok(())
     }
 
@@ -121,15 +125,9 @@ impl Utils for WebDriver {
         })
             .case_insensitive()
             .partial();
-
-        let css = match folder_type {
-            FolderType::Item => "#content_listContainer img[alt='Item'] + div + div div.detailsValue a:nth-child(2)",
-            FolderType::File => "#content_listContainer img[alt='File'] + div div a:nth-child(2)",
-            _ => "#content_listContainer img[alt='Content Folder'] + div a",
-        };
         
         let links = self
-            .query(By::Css(&css))
+            .query(By::Css(folder_type.css()))
             .wait(Duration::new(20, 0), Duration::from_millis(1000))
             .with_text(text)
             .all()
