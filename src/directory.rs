@@ -23,6 +23,7 @@ pub fn move_files(settings: &Settings, folder: &str, week: &str) -> io::Result<(
     println!("\nMoving files to: {:?}", week_path);
 
     let temp_download_path = settings.path.join(settings.temp_download_folder);
+    println!("{:?}", temp_download_path);
     for entry in fs::read_dir(temp_download_path)? {
         let old = entry?.path();
         let new = week_path.join(old.file_name().unwrap());

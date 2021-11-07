@@ -468,7 +468,7 @@ dependencies = [
  "serde",
  "serde_json",
  "stringmatch",
- "thirtyfour 0.25.1",
+ "thirtyfour 0.27.2",
  "thirtyfour_query",
  "tokio",
  "toml",
@@ -975,9 +975,9 @@ dependencies = [
 
 [[package]]
 name = "thirtyfour"
-version = "0.25.1"
+version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4429572f5e3ca656ffcd80765c09603e060c7d336ab359e58a0665e4a270698"
+checksum = "ed8fce6045f9a1bbe467c3cf4a2ea47df8e1b30f170160c4a2e8f6fcadb33425"
 dependencies = [
  "async-trait",
  "base64",

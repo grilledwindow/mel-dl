@@ -11,6 +11,33 @@ pub struct Folder {
     pub link: String,
 }
 
+pub struct Links {
+    pub item_links: Vec<String>,
+    pub file_links: Vec<String>,
+    pub folder_links: Vec<String>,
+    pub folder_week_links: Vec<Folder>,
+}
+
+#[derive(Debug)]
+pub enum FolderType {
+    FolderWeek,
+    Folder,
+    Item,
+    File,
+}
+
+impl FolderType {
+    fn css(&self) -> &str {
+        match self {
+            FolderType::Item => "#content_listContainer img[alt='Item'] + div + div div.detailsValue a:nth-child(2)",
+            FolderType::File => "#content_listContainer img[alt='File'] + div div a:nth-child(2)",
+            _ => "#content_listContainer img[alt='Content Folder'] + div a",       
+        }
+    }
+}
+
+// use ImgAlt;
+
 #[async_trait]
 pub trait Utils {
     async fn query_wait<'a>(
@@ -21,8 +48,8 @@ pub trait Utils {
     async fn query_wait_click<'a>(&'a self, elem: By<'a>, wait: &[u64]) -> WebDriverResult<()>;
     async fn alt_click(&self, element: &WebElement) -> WebDriverResult<()>;
     async fn open_learning_materials(&self) -> WebDriverResult<()>;
-    async fn download_i_files(&self) -> WebDriverResult<()>;
-    async fn get_folder_links(&self, is_week: bool) -> WebDriverResult<Vec<Folder>>;
+    async fn _download_files(&self, folder_type: FolderType) -> WebDriverResult<()>;
+    async fn get_links(&self, folder_type: &FolderType) -> WebDriverResult<Vec<Folder>>;
 }
 
 #[async_trait]
@@ -79,69 +106,67 @@ impl Utils for WebDriver {
         Ok(())
     }
 
-    async fn download_i_files(&self) -> WebDriverResult<()> {
+    async fn _download_files(&self, folder_type: FolderType) -> WebDriverResult<()> {
         let file_links = self
-            .query(By::Css(
-                "#content_listContainer .detailsValue :nth-child(2)",
-            ))
+            .query(By::Css(folder_type.css()))
             .all()
             .await?;
         for link in file_links {
-            println!("- Downloading: {}", link.text().await?);
+            println!("- Downloading: {}", link);
             self.alt_click(&link).await?;
         }
         Ok(())
     }
 
-    async fn get_folder_links(&self, is_week: bool) -> WebDriverResult<Vec<Folder>> {
-        let text = StringMatch::new(if is_week { "week" } else { "" })
+    async fn get_links(&self, folder_type: &FolderType) -> WebDriverResult<Vec<Folder>> {
+        let text = StringMatch::new(match folder_type {
+            FolderType::FolderWeek => "week",
+            _ => "",
+        })
             .case_insensitive()
             .partial();
-
-        let folder_links = self
-            .query(By::Css(
-                "#content_listContainer img[alt='Content Folder'] + div a",
-            ))
+        
+        let links = self
+            .query(By::Css(folder_type.css()))
             .wait(Duration::new(20, 0), Duration::from_millis(1000))
             .with_text(text)
             .all()
             .await?;
 
-        let folder_links = join_all(folder_links.into_iter().map(|a| async move {
+        let links = join_all(links.into_iter().map(|a| async move {
             let link = a.get_attribute("href").await.ok().unwrap().unwrap();
 
-            if !is_week {
-                return Folder {
-                    week_no: String::new(),
-                    link,
-                };
-            }
+            let text = if let FolderType::FolderWeek = folder_type {
+                let re = Regex::new(r"[Ww]eek\s*\d+").unwrap();
+                let text = a
+                    .find_element(By::Tag("span"))
+                    .await
+                    .ok()
+                    .unwrap()
+                    .text()
+                    .await
+                    .ok()
+                    .unwrap();
+                let week = re.find(&text).unwrap();
+    
+                let re = Regex::new(r"\d+").unwrap();
+                let text = &text[..week.end()];
+                let week = re.find(text).unwrap();
+    
+                let text = &text[week.start()..week.end()];
 
-            let re = Regex::new(r"[Ww]eek\s*\d+").unwrap();
-            let text = a
-                .find_element(By::Tag("span"))
-                .await
-                .ok()
-                .unwrap()
-                .text()
-                .await
-                .ok()
-                .unwrap();
-            let week = re.find(&text).unwrap();
-
-            let re = Regex::new(r"\d+").unwrap();
-            let text = &text[..week.end()];
-            let week = re.find(text).unwrap();
-
-            let text = &text[week.start()..week.end()];
+                String::from(text)
+            } else {
+                String::new()
+            };
 
             Folder {
-                week_no: String::from(text),
+                week_no: text,
                 link,
             }
         }))
         .await;
 
-        Ok(folder_links)
+        Ok(links)
     }
 }
